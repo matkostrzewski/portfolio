@@ -1,0 +1,234 @@
+{% extends "layout.html" %}
+{% block body %}
+{% load static %}
+{% load customFilters %}
+{% if request.user.is_authenticated %}
+  {% csrf_token %}
+{% endif %}
+<div id="reportBox" class="modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Report</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Report this post click <a role='button' href='#' id='reportPost'> here </a></p>
+        <p>Report this profile click <a role='button' href='#' id='reportProfile'> here </a></p>
+      </div>
+      <div class="modal-footer">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="commentBox" class="modal fade" tabindex="-1">
+  <div class="modal-dialog  modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Comments </h5> 
+        <h5 class='d-inline ml-3 text-primary cursor' id='newComScroll' data-toggle="tooltip" data-placement="top" title="New comment"><i class="fas fa-plus-square"></i></h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div id='commentElements' class="modal-body">
+                 <div class='com'>
+            <span class=''><a href='#'>TEST</a></span>
+            <p class='rounded message'> bardzo bym chcial zobaczyc twojego psa na żywo. 
+      dodatkowo chcialbym sprawdzić czy na żywo jest 
+      równie uroczy jak na zdjęciach i jak te zdjęcia
+       wykonujecie ponieważ są niesamowite. Piękne pozy i piękny pies</p>
+          </div>
+        {% for x in '123456789123456789123456789123456789123456789' %}
+          <div class='com'>
+            <span class=''><a href='#'>TEST</a></span>
+            <p class='rounded message'>Simple text</p>
+          </div>
+        {% endfor %}
+        
+      </div>
+      <div id='newCom' class="modal-footer">
+        <form class='w-100'>
+          <h5>New comment</h5>
+          <input class='form-control' type='text' />
+          <input class='btn btn-success mt-1' type='button' value='Send' />
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div id='fullscreenPhoto' class='hide'>
+  <img id='imgFull' src='' />
+</div>
+<div id="search">
+  <div class="input-group">
+    <input 
+      type="text" 
+      class="form-control" 
+      id="searchInput" 
+      name='searchInput'
+      placeholder="Search tags" 
+      aria-describedby="inputGroupPrepend2" 
+    />   
+    <div class="input-group-prepend ml-1 mr-1" data-toggle="tooltip" data-placement="top" title="Filter">
+        <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseFilters" 
+          aria-expanded="false" aria-controls="collapseFilters">
+            <i class="fas fa-filter"></i>
+          </button>
+    </div>
+    <div class="input-group-prepend" data-toggle="tooltip" data-placement="top" title="Search" id='searchAction'>
+        <button class="btn btn-primary" type="button">
+            <i class="fas fa-search"></i>
+          </button>
+    </div>
+  </div>
+  <div class="collapse" id="collapseFilters">
+    <div class="card card-body">
+      <div id='filterList' class="font-weight-bold">
+        <ul class="list-inline" >
+          {% for category in categories %}
+            <li class='list-element'>
+              <label class="b-contain">
+                <span>{{category.name}}</span>
+                <input class='filterOpt' type="checkbox" value='{{category.id}}'>
+                <div class="b-input"></div>
+              </label>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<div id='posts'>
+  {% for post in posts %}
+    <div class="row mt-1 post">
+      <div class="col-12 col-sm">
+        <div class="card shadow-sm">
+          <div class="row pt-2 pl-2">
+            <div div class="col-10 col-sm">
+              <span>
+                <a class='font-weight-bold' href="{% url 'profile' profileName=post.owner.displayName %}"> {{ post.owner.displayName }} 
+                {% if post.owner.verified %} <i class="fas fa-check-circle" title="Verified"></i> {% endif %} 
+              </a>
+              </span>
+            </div>
+            <div class="col-1 text-center">
+              <span class="report" data-toggle="tooltip" data-placement="top" title="Report" data-post={{post.id}} data-profile={{post.owner.displayName}}>
+                <i class="fas fa-flag" style="color:red;cursor:pointer;"></i>
+              </span>
+            </div>
+
+          </div>
+          <div class='pl-3 float-left'>
+            {% for tag in post.tagsList %} 
+              <span class="badge badge-info cursor tag">#{{ tag }}</span>
+            {% endfor %}
+          </div>
+
+          <span class='fullscreen'>
+            <img class="mx-auto d-block mt-2 imagePlaceholder" src="{{ post.getFirstPhoto.image.url }}" focusable="false" />
+          </span>
+
+          <div class="pl-2 font-weight-bold" style='padding-bottom: 10px;padding-top: 10px;user-select: none;'>
+
+            <span role='button' data-toggle="tooltip" data-placement="top" title="Likes">
+
+              {% if likes|value_by_key:forloop.counter0 == 1 %}
+                <span class="icon_placeholder like liked" data-id={{post.id}}>
+              {% else %}
+                <span class="icon_placeholder like" data-id={{post.id}}>
+              {% endif %}
+                <i class="fas fa-paw"></i>
+              </span>
+              <span class='convertNumbers' title='{{post.likesCount}}'>{{post.likesCount}}</span>
+            </span>
+
+            <span style="margin-left:1%"></span>
+            <span data-toggle="tooltip" data-placement="top" title="Comments">
+              <span class="icon_placeholder comment">
+                <i class="fas fa-comment-alt"></i>
+              </span>
+              <span class='convertNumbers' title='{{post.commentCount}}'>{{post.commentCount}}</span>
+            </span>
+
+            <span style="margin-left:1%"></span>
+            {% if request.user.userProfile.id != post.owner.id %}
+              {% if follows|value_by_key:forloop.counter0 == 1%}
+                <span data-toggle="tooltip" data-placement="top" title="Unfollow">
+                  <span class="icon_placeholder unfollow" profile-id="{{post.owner.id}}">
+                    <i class="far fa-eye-slash"></i>
+                    <i class="hide far fa-eye"></i>
+                  </span>
+                </span>
+              {% else %}
+                <span data-toggle="tooltip" data-placement="top" title="Follow">
+                  <span class="icon_placeholder follow" profile-id="{{post.owner.id}}">
+                    <i class="hide far fa-eye-slash"></i>
+                    <i class="far fa-eye"></i>
+                  </span>
+                </span>
+              {% endif %}
+            {% endif %}
+            <span class="icon_placeholder" data-toggle="tooltip" data-placement="top" title="Go to post">
+              <a href="{% url 'postId' id=post.id %}"><i class="fas fa-external-link-alt"></i></a>
+            </span>
+
+            <span data-toggle="tooltip" data-placement="top" title="Copy to clipboard">
+              <span class="icon_placeholder share" data-id="{% url 'postId' id=post.id %}">
+                <i class="fas fa-share-alt"></i>
+              </span>
+            </span>
+
+          <small class='float-right mr-2'> {{ post.created_at|date:'Y-m-d' }} </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+<div class='paginationBox pt-3'>
+  <div class="text-center">
+    <nav>
+      <ul class="pagination justify-content-center">
+      {% if listings.has_previous or listings.has_next %}
+        {% if listings.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?{% url_replace page=1 %}">First</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="?{% url_replace page=listings.previous_page_number %}" tabindex="-1">Previous</a>
+          </li>
+        {% endif %}
+        {% for i in paginator.page_range %}
+          {% if i < listings.number and i >= listings.number|add:"-4" and i != listings.number and i != 1 %}
+            <li class="page-item"><a class="page-link" href="?{% url_replace page=i %}">{{i}}</a></li>
+          {% elif i > listings.number and i <= listings.number|add:"4" and i != listings.number and i != listings.paginator.num_pages %}
+            <li class="page-item"><a class="page-link" href="?{% url_replace page=i %}">{{i}}</a></li>
+          {% elif listings.number == i %}
+            <li class="page-item"><a class="page-link" href="?{% url_replace page=i %}">{{i}}</a></li>
+          {% endif %}
+        {% endfor %}
+        {% if listings.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?{% url_replace page=listings.next_page_number %}">Next</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" href="?{% url_replace page=listings.paginator.num_pages %}">Last</a>
+          </li>
+        {% endif %}
+      {% endif %}
+      </ul>
+    </nav>
+  </div>
+</div>
+{% endblock %}
+{% block load %}
+  <script type="text/javascript" src="{% static 'js/numbers.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/events.js' %}"></script>
+{% endblock %}
