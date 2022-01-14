@@ -16,3 +16,10 @@ Async upload images <br>
 Discord API connected - Login system <br>
 
 ----------------------------------------------------------------
+
+
+<h2>SMS gateway php</h2>
+API for  https://wammu.eu/smsd/ <br> 
+Sending and receiving SMS via modem GSM
+
+----------------------------------------------------------------
